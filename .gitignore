@@ -1,6 +1,6 @@
 venv
 __pycache__/
-infohound/migrations
-infohound/infohound_config.py
-infohound/tool/downloaded_files/*
-!infohound/tool/downloaded_files/.gitkeep
+reconfox/migrations
+reconfox/reconfox_config.py
+reconfox/tool/downloaded_files/*
+!reconfox/tool/downloaded_files/.gitkeep

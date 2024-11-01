@@ -16,10 +16,10 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=infohound_db
+      - POSTGRES_DB=reconfox_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-    command: sh -c "python manage.py makemigrations infohound && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py makemigrations reconfox && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
   
   celery_worker:
     build:
@@ -33,10 +33,10 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=infohound_db
+      - POSTGRES_DB=reconfox_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-    command: sh -c "celery -A infohound_project worker --loglevel=info"
+    command: sh -c "celery -A reconfox_project worker --loglevel=info"
 
   redis:
     image: redis:latest
@@ -50,7 +50,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=infohound_db
+      - POSTGRES_DB=reconfox_db
 
   ollama:
     image: ollama/ollama:latest

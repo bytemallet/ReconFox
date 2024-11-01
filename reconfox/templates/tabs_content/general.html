@@ -1,0 +1,94 @@
+<div class="container">
+
+ <!-- <h2 class="text-center mt-4">Domain Overview</h2> -->
+  
+  <div class="mt-4">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card text-right shadow h-100">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">Domain Information</h5>
+            <p class="mb-0"><span class="fw-bold">Domain:</span> <span id="domain-name"></span></p>
+            <p class="mb-0"><span class="fw-bold">Registrar:</span> <span id="domain-registrar"></span></p>
+            <p class="mb-0"><span class="fw-bold">Creation:</span> <span id="domain-creation"></span></p>
+            <p class="mb-0"><span class="fw-bold">Expiration:</span> <span id="domain-expiration"></span></p>
+            <hr>
+            <p class="mb-0"><span class="fw-bold">Email domain:</span> <span id="email-domain"></span></p>
+            <p class="mb-0"><span class="fw-bold">Email pattern:</span> <span id="email-pattern"></span></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card text-right shadow">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">Name Servers</h5>
+            <p class="mb-0"><span class="fw-bold">A:</span> <span id="dns-A-records"></span></p>
+            <p class="mb-0"><span class="fw-bold">AAAA:</span> <span id="dns-AAAA-records"></span></p>
+            <p class="mb-0"><span class="fw-bold">MX:</span> <span id="dns-MX-records"></span></p>
+            <p class="mb-0"><span class="fw-bold">NS:</span> <span id="domain-NS"></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4">
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">URLs</h5>
+            <p id="urls-count-stats" class="display-3"></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">Subdomains</h5>
+            <p id="subdomains-count-stats" class="display-3"></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">People</h5>
+            <p id="people-count-stats" class="display-3"></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">Files</h5>
+            <p id="files-count-stats" class="display-3"></p>
+          </div>
+        </div>
+      </div>    
+    </div>   
+    <div class="row">
+      <div class="col mb-3">
+        <div class="card text-center shadow">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">Emails</h5>
+            <div class="row justify-content-center">
+              <div class="col-12 col-sm-6 col-md-3">
+                <canvas id="email-chart-leak"></canvas>
+              </div>
+              <div class="col-12 col-sm-6 col-md-3">
+                <canvas id="email-chart-spoof"></canvas>
+              </div>
+              <div class="col-12 col-sm-6 col-md-3">
+                <canvas id="email-chart-people"></canvas>
+              </div>
+              <div class="col-12 col-sm-6 col-md-3">
+                <canvas id="email-chart-services"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

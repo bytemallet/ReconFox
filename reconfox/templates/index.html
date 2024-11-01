@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'reconfox/css/styles.css' %}">
+    <title>{% block title %}ReconFox{% endblock %}</title>
+</head>
+<body class="bg-light text-dark">
+    <nav class="navbar navbar-expand-lg navbar-white bg-white shadow" style="border-bottom: 1px solid black;">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="{% static 'reconfox/imgs/ReconFox_logo.png' %}" alt="Logo" width="40" height="40" class="d-inline-block">
+          ReconFox
+        </a>
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNavAltMarkup">
+          <div id="nav-group" class="navbar-nav">
+            <a id="nav-general" class="nav-link me-2 active" aria-current="page" style="cursor: pointer;">General</a>
+            <a id="nav-subdomains" class="nav-link me-2" style="cursor: pointer;">Subdomains</a>
+            <a id="nav-people" class="nav-link me-2" style="cursor: pointer;">People</a>
+            <a id="nav-emails" class="nav-link me-2" style="cursor: pointer;">Emails</a>
+            <a id="nav-dorks" class="nav-link me-2" style="cursor: pointer;">Dorks</a>
+            <a id="nav-tasks" class="nav-link me-2" style="cursor: pointer;">Tasks</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="d-flex my-background">
+      <div class="p-3 bg-white rounded" style="width: 280px; height: 100vh; border: 2px solid black; margin: 10px 0 10px 10px;">
+        <ul class="nav nav-pills flex-column" id="v-pills-tab">
+          <li class="nav-item mb-3">
+            <div class="d-grid">
+              <button id="addDomain" class="btn btn-dark" type="button">Add domain</button>
+            </div>
+          </li>
+          <div id="domain-list">
+          </div>
+        </ul>
+      </div>
+
+      <div id="content" class="container-fluid">
+        {% include 'tabs_content/general.html' %}
+      </div>
+    </div>
+
+    <div class="position-fixed top-0 end-0 p-3 mt-5">
+      <!-- Toast -->
+      <div id="error-toast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div id="error-toast-body" class="toast-body">
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div id="success-toast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div id="success-toast-body" class="toast-body">
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="removeDomainModal" tabindex="-1" aria-labelledby="removeDomainModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="removeDomainModalLabel">Delete domain</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            The selected domain will be deleted and all the data found about it will be erased. Are you sure you want to continue?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="deleteDomainButton" type="button" class="btn btn-danger" data-bs-dismiss="modal">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addDomainModal" tabindex="-1" aria-labelledby="addDomainModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="addDomainModalLabel">Add domain</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div>
+              Please, specify the domain you want to analyze:
+              <input id="addDomainModalInput" type="text" class="form-control" placeholder="Domain name" aria-label="Domain name">
+            </div>
+            <div class="mt-3">
+              Specify the email domain (sometimes it can be different from the web domain):
+              <input id="addEmailDomainModalInput" type="text" class="form-control" placeholder="Email domain" aria-label="Domain name">
+            </div>
+            <div class="form-check form-switch mt-3">
+              <input id="fullPassiveSwitch" class="form-check-input" type="checkbox" role="switch" checked>
+              <label class="form-check-label" for="fullPassiveSwitch">Full passive</label>
+            </div>
+            <div class="mt-3">
+              <p><span class="fw-bold">Note:</span> Local AI tasks need powerful hardware, while remote solutions incur costs.</p>
+              <p><span class="fw-bold">Note:</span> Files from the analyzed domain will be downloaded to extract information and text. While they won't be executed and ReconFox runs in Docker, there may still be risks involved. Proceed with caution.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="addDomainButton" type="button" class="btn btn-success" data-bs-dismiss="modal">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer bg-dark text-center text-white py-1">
+      <p>Code by <a href="https://www.linkedin.com/in/xaviermarrugat/" class="text-white">Xavier Marrugat</a></p>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'reconfox/js/index.js' %}"></script>
+</body>
+</html>
