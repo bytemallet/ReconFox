@@ -1,5 +1,5 @@
 # Use an official Python runtime as the base image
-FROM python:3.9
+FROM python:3.10
 
 # Set environment variables
 ENV PYTHONUNBUFFERED 1
@@ -9,14 +9,17 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install exiftool and maigret
-RUN apt-get update && apt-get install -y exiftool
-
 # Set the working directory in the container
 WORKDIR /code
 
 # Copy the requirements file to the container
 COPY requirements.txt /code/
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    exiftool \
+    git \
+    && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
 # Install the project dependencies
 RUN pip install --no-cache-dir -r requirements.txt
