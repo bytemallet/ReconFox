@@ -111,6 +111,10 @@ def checkBreachTask(self, domain):
 def summarizeProfileTask(self, domain):
 	people_analisys.summarizeProfile(domain)
 
+@shared_task(bind=True, name="get_file_relationships")
+def getFileRelationshipsTask(self, domain):
+	files_analysis.getFileRelationships(domain)
+
 # --------------CUSTOM--------------
 
 @shared_task(bind=True, name="custom_task")

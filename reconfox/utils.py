@@ -1,7 +1,7 @@
 import os
 import importlib
 import reconfox.tasks as tasks_list
-from celery import group
+from celery import chain
 from reconfox.models import Domain, Dorks, Tasks
 from django.db import IntegrityError
 from django.utils import timezone
@@ -32,9 +32,10 @@ def load_tasks(domain_id):
     {"name_id":"getEmailsFromMetadataTask","name":"Get Emails From Metadata", "description":"As some metadata can contain emails, this will retrive all o them and save it to the database.", "type":"Analysis"},
     {"name_id":"getEmailPatternTask","name":"[AI-Powered] Get Email Pattern", "description":"Examines the gathered email addresses to identify the primary pattern used by the organization.", "type":"Analysis"},
     {"name_id":"getEmailsFromFilesContentTask","name":"Get Emails From Files Content", "description":"Usually emails can be included in corporate files so this task will retrive all the emails from the downloaded files content.", "type":"Analysis"},
+    {"name_id":"getFileRelationshipsTask","name":"[AI-Powered] User-File Linkage and Software Detection", "description":"Identify relationships between users and files, determining which documents users have engaged with, while also noting the software associated with each file.", "type":"Analysis"},
     {"name_id":"findRegisteredSitesTask","name":"Find Registered Services using emails", "description":"It is possible to find services or social networks where an emaill has been used to create an account. This task will check if an email ReconFox has discovered has an account in: Twitter, Adobe, Facebook, Imgur, Mewe, Parler, Rumble, Snapchat, Wordpress and/or Duolingo", "type":"Analysis"},
     {"name_id":"checkBreachTask","name":"Check Breach", "description":"This task checks Firefox Monitor service to see if an email has been found in a data breach. Although it is a free service, it has a limitation of 10 queries per day. If Leak-Lookup API key is set, it also checks it.", "type":"Analysis"},
-    {"name_id":"summarizeProfileTask","name":"[AI-Powered] Profile Analisys", "description":"Examine metadata and generate a description and job title for each person", "type":"Analysis"},
+    {"name_id":"summarizeProfileTask","name":"[AI-Powered] Profile Analisys", "description":"Examine metadata and generate a description and job title for each person.", "type":"Analysis"},
     {"name_id":"getLeakedPasswordsTask","name":"Get leaked passwords", "description":"Using Proxy Nova's free service, ReconFox can detect and display passwords from usernames found that have been leaked in the past.", "type":"Analysis"}]
     for task in tasks:
         try:
@@ -74,31 +75,47 @@ def load_dorks(domain_id):
                     pass
     
 
-def execute_initital(domain_id):
-    tasks_name = ["getWhoisInfoTask","getDNSRecordsTask","getSubdomainsTask", "getURLsTask", "getSubdomainsFromURLSTask", 
-                    "findEmailsTask", "findEmailsFromURLsTask", "findSocialProfilesByEmailTask"]
-    job = group([
-        # RETRIEVE
-        tasks_list.getWhoisInfoTask.s(domain_id),
-        tasks_list.getDNSRecordsTask.s(domain_id),
-        tasks_list.getSubdomainsTask.s(domain_id),
-        tasks_list.getURLsTask.s(domain_id),
-        tasks_list.getSubdomainsFromURLSTask.s(domain_id),
-        tasks_list.findEmailsTask.s(domain_id),
-        tasks_list.findEmailsFromURLsTask.s(domain_id),
-        tasks_list.findSocialProfilesByEmailTask.s(domain_id),
-        ])
-    result = job.apply_async()
-    for i, t in enumerate(result.results):
+def execute_initial(domain_id):
+    tasks = [
+        tasks_list.getWhoisInfoTask.si(domain_id),
+        tasks_list.getDNSRecordsTask.si(domain_id),
+        tasks_list.getSubdomainsTask.si(domain_id),
+        tasks_list.getURLsTask.si(domain_id),
+        tasks_list.getSubdomainsFromURLSTask.si(domain_id),
+        tasks_list.findEmailsTask.si(domain_id),
+        tasks_list.findEmailsFromURLsTask.si(domain_id),
+        tasks_list.findSocialProfilesByEmailTask.si(domain_id),
+    ]
+    
+    tasks_name = [
+        "getWhoisInfoTask", "getDNSRecordsTask", "getSubdomainsTask",
+        "getURLsTask", "getSubdomainsFromURLSTask", "findEmailsTask",
+        "findEmailsFromURLsTask", "findSocialProfilesByEmailTask"
+    ]
+    
+    # Store each task's AsyncResult ID in the database
+    task_ids = []
+    for i, task in enumerate(tasks):
+        async_result = task.apply_async()
+        task_ids.append(async_result.id)
+        
+        # Store the task ID in the database
         try:
-            Tasks.objects.filter(tid=tasks_name[i], domain_id=domain_id).update(celery_id=t.id, last_execution=timezone.now())
-        except IntegrityError as e:
+            Tasks.objects.filter(tid=tasks_name[i], domain_id=domain_id).update(
+                celery_id=async_result.id,
+                last_execution=timezone.now()
+            )
+        except IntegrityError:
             pass
+
+    # Execute the full chain
+    job_chain = chain(*tasks)
+    result = job_chain.apply_async()
 
 
 async def init(domain_id):
     load_tasks(domain_id)
     load_custom_tasks(domain_id)
-    execute_initital(domain_id)
+    execute_initial(domain_id)
 
 

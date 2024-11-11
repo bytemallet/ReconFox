@@ -1,7 +1,5 @@
 <div class="container">
-  <h2 class="text-center mt-4 mb-4">People found</h2>
-  <hr style="color: white;">
-  <div id="people-card-container" class="row">
+  <div id="people-card-container" class="row mt-3">
   </div>
   
   <!-- Modal -->
@@ -9,22 +7,26 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 class="modal-title" id="personInfoModalLabel"></h3>
+          <h3 id="personInfoModalLabel" class="modal-title"></h3>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div id="personDetailedInfo" class="modal-body">
-          <div id=personSummary class="mb-2"></div>  
-          <h5>Emails and Services</h5>
-          <div id=personDetailedEmails>
-            
-          </div>  
-          <hr>
-          <h5>Usernames and Profiles<span data-bs-toggle="tooltip" data-bs-placement="top" title="Experimental feature. Some false positives can appear."><i class="bi bi-info-circle ms-2"></i></span></h5>
+        <div id="personDetailedInfo" class="modal-body overflow-auto" style="max-height: 70vh;">
+          <p id="personJobTitleModal" class="text-body-secondary"></p>
 
+          <h5 class="fw-bold">Job Description</h5>
+          <div id="personSummary" class="mb-2"></div> 
 
-          <div id=personDetailedUsernames>
-            
-          </div>
+          <h5 class="fw-bold mt-4">Emails and Services</h5>
+          <ul id="personDetailedEmails" class="list-group"></ul>  
+
+          <h5 class="fw-bold mt-4">Usernames and Profiles<span data-bs-toggle="tooltip" data-bs-placement="top" title="Experimental feature. Some false positives can appear."><i class="bi bi-info-circle ms-2"></i></span></h5>
+          <ul id="personDetailedUsernames" class="list-group"></ul>
+
+          <h5 class="fw-bold mt-4">Files</h5>
+          <ul id="personDetailedFiles" class="list-group"></ul>  
+
+          <h5 class="fw-bold mt-4">Software Used</h5>
+          <div id="personDetailedSoftware"></div>  
         </div>
       </div>
     </div>

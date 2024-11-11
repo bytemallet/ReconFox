@@ -5,10 +5,11 @@ import base64
 import importlib
 import networkx as nx
 from datetime import datetime
+from celery import chain, states
 from celery.result import AsyncResult
 from django.shortcuts import render
 from django.http import JsonResponse
-from reconfox.models import Domain, People, Files, Emails, Subdomains, URLs, Dorks, Results, Usernames, Tasks
+from reconfox.models import Domain, People, Files, Emails, Subdomains, URLs, Dorks, Results, Usernames, Tasks, PeopleFiles
 import reconfox.tasks
 import reconfox.utils
 from django.utils import timezone
@@ -100,6 +101,7 @@ def people_all(request):
                 p["facebook"] = profile
             elif "twitter" in profile:
                 p["twitter"] = profile
+        p["files"] = PeopleFiles.objects.filter(people=entry).count()
         data.append(p)
 
     return JsonResponse(data, safe=False)
@@ -118,6 +120,7 @@ def get_person_details(request, person_id):
     person = People.objects.get(id=person_id, domain_id=domain_id)
     emails = Emails.objects.filter(people=person, domain_id=domain_id)
     data["ocupation_summary"] = person.ocupation_summary
+    data["job_title"] = person.job_title
     data["name"] = person.name
     data["emails"] = []
     for entry in emails.iterator():
@@ -128,7 +131,22 @@ def get_person_details(request, person_id):
     for entry in usernames.iterator():
         password = entry.password if entry.password is not None else "-"
         data["usernames"].append({"username":entry.username, "leaked":password!='-', "password":password, "profiles": entry.profiles})
-        
+    
+    data["software"] = []
+    data["files"] = []
+    people_files = PeopleFiles.objects.filter(people=person)
+    for people_file in people_files:
+        file_entry = {
+            "filename": people_file.file.filename,
+            "shared_with": list(PeopleFiles.objects.filter(file=people_file.file).values_list('people__name', flat=True))
+        }
+
+        software_used = people_file.file.software_used 
+        data["software"].extend(software_used)
+
+        data["files"].append(file_entry)
+
+
     return JsonResponse(data, safe=False)
 
 def emails_view(request, domain_id):
@@ -215,7 +233,11 @@ def get_available_tasks(request):
         if entry.celery_id == None:
             data["state"] = None
         else:
-            data["state"] = AsyncResult(entry.celery_id).state if (entry.celery_id) else None
+            result = AsyncResult(entry.celery_id)
+            data["state"] = result.state if result.state in ['PENDING', 'RETRY', 'STARTED'] else None
+            if data["state"] is None:
+                entry.celery_id = None 
+            entry.save
         tasks.append(data)
     return JsonResponse(tasks, safe=False)
 
@@ -249,6 +271,62 @@ def execute_task(request):
     else:
         res["task"] = task.task_id
     return JsonResponse(res, safe=False)
+
+def execute_megatask(request):
+    domain_id = request.GET.get('domain_id')
+    megatask_id = request.GET.get('mtid')
+
+    # Mapping of megatasks to subtasks
+    megatasks = {
+        "email-megatask": {
+            "tasks": [
+                reconfox.tasks.findEmailsTask.si(domain_id),
+                reconfox.tasks.findEmailsFromURLsTask.si(domain_id),
+                reconfox.tasks.executeDorksTask.si(domain_id),
+                reconfox.tasks.findEmailsFromDorksTask.si(domain_id),
+                reconfox.tasks.getFilesFromURLsTask.si(domain_id),
+                reconfox.tasks.downloadAllFilesTask.si(domain_id),
+                reconfox.tasks.getMetadataTask.si(domain_id),
+                reconfox.tasks.getEmailsFromMetadataTask.si(domain_id),
+                reconfox.tasks.getEmailPatternTask.si(domain_id),
+            ], 
+            "task_ids": ["findEmailsTask", "findEmailsFromURLsTask", "executeDorksTask", "findEmailsFromDorksTask", "getFilesFromURLsTask",
+                          "downloadAllFilesTask", "getMetadataTask", "getEmailsFromMetadataTask", "getEmailPatternTask"]
+        }
+    }
+
+    res = {}
+
+    # Check if the megatask exists
+    if megatask_id in megatasks:
+        subtasks = megatasks[megatask_id]
+
+        # Check if any of the subtasks are currently executing
+        ongoing_tasks = Tasks.objects.filter(
+            tid__in=subtasks["task_ids"],
+            celery_id__isnull=False
+        )
+        
+        if not ongoing_tasks.exists():
+            # Create a chain of tasks
+            task_chain = chain(*subtasks["tasks"])
+            
+            # Execute the task chain
+            result = task_chain.apply_async()
+            
+            # Update all tasks in the database with the same celery_id
+            for task_id in subtasks["task_ids"]:
+                Tasks.objects.filter(tid=task_id, domain_id=domain_id).update(celery_id=result.id,last_execution=timezone.now())
+
+            res["task"] = result.id
+        else:
+            res["error"] = "One or more tasks are already in progress."
+    else:
+        res["error"] = "Megatask not found."
+    
+    return JsonResponse(res)
+    
+    
 
 def get_task_status(request):
     tid = request.GET['tid']
@@ -427,10 +505,18 @@ def export_all_to_CSV(request, domain_id):
 def stop_task_execution(request):
     tid = request.GET['tid']
     domain_id = request.GET['domain_id']
-    task = Tasks.objects.get(tid=tid,domain_id=domain_id)
+    
+    # Fetch the task object from the database
+    task = Tasks.objects.get(tid=tid, domain_id=domain_id)
+    
+    # Revoke the task in Celery
+    if task.celery_id:
+        AsyncResult(task.celery_id).revoke(terminate=True)
+    
+    # Clear the celery_id in the database
     task.celery_id = None
     task.save()
-    return JsonResponse({'msg': "done"}, status=200)
+    return JsonResponse({'msg': "Task stopped and celery_id removed."}, status=200)
 
 
 

@@ -51,7 +51,7 @@ def getUrls(query):
     #- files
     #- url
 
-def discoverPeople (query):
+def discoverPeople(query):
     start = 1
     total_results = 0
     total_gathered = 0
@@ -89,7 +89,7 @@ def discoverPeople (query):
             else:
                 results = False
         start = start + 10
-        time.sleep(1)
+        time.sleep(0.2)
         
     print("Found "+str(total_results)+" and added "+str(total_gathered))
     return (people)
@@ -132,6 +132,7 @@ def discoverEmails(domain):
         except Exception as ex:
             raise ex #It's left over... but it stays there
         start += 1
+        time.sleep(0.2)
     return emails
 
 def discoverSocialMedia(domain,email):

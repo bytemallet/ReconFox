@@ -6,11 +6,11 @@ In addition, ReconFox leverages an Ollama instance, enabling it to harness the p
 **NOTE:** ReconFox does not require any special hardware to operate. However, it's important to consider the hardware requirements when using tasks that utilize the Large Language Model (LLM). For detailed information about the specific requirements for the LLM model you intend to use, please refer to the official [Ollama documentation](https://ollama.ai/library).
 
 ## :house: ReconFox architecture
-<p align="center"><img src="https://github.com/Fundacio-i2CAT/InfoHound/blob/main/new_infohound_diagram.jpg" alt="Infohound diagram" ></p>
+This project stack uses Django for web and API management, PostgreSQL for database handling, and Celery with Redis for efficient asynchronous task processing, making it highly scalable and responsive. AI features are enabled through OpenAI for natural language tasks and Ollama for custom model integration, allowing for powerful data processing and ML capabilities that enhance the application’s functionality and user experience.
 
 ## 🛠️ Installation
 ```
-git clone https://github.com/Fundacio-i2CAT/InfoHound.git
+git clone https://github.com/bytemallet/ReconFox.git
 cd ReconFox/reconfox
 mv reconfox_config.sample.py reconfox_config.py
 cd ..
@@ -18,7 +18,7 @@ docker-compose up -d
 ```
 You can now access ReconFox navigating with your browser to:
 ```
-http://localhost:8000/
+http://127.0.0.1:8000/
 ```
 **NOTE:** You must add API Keys inside reconfox_config.py file
 
@@ -56,7 +56,9 @@ ReconFox has 2 different types of modules, those which retreives data and those 
 | Get Emails From Files Content | Usually, emails can be included in corporate files, so this task will retrieve all the emails from the downloaded files' content. |
 | Find Registered Services using Emails | It is possible to find services or social networks where an email has been used to create an account. This task will check if an email ReconFox has discovered has an account in Twitter, Adobe, Facebook, Imgur, Mewe, Parler, Rumble, Snapchat, Wordpress, and/or Duolingo. |
 | Check Breach | This task checks Firefox Monitor service to see if an email has been found in a data breach. Although it is a free service, it has a limitation of 10 queries per day. If Leak-Lookup API key is set, it also checks it. |
-| AI-Powered Profile Analisys | You can use the profile analysis task to employ an AI-powered tool that examines the metadata and creates a description for you. |
+| \[AI-Powered\] Profile Analisys | Examine metadata and generate a description and job title for each person. |
+| \[AI-Powered\] User-File Linkage and Software Detection | Identify relationships between users and files, determining which documents users have engaged with, while also noting the software associated with each file. |
+| \[AI-Powered\] Get Email Pattern | Examines the gathered email addresses to identify the primary pattern used by the organization. |
 | Get leaked passwords | Using Proxy Nova's free service, ReconFox can detect and display passwords from usernames found that have been leaked in the past. |
 
 ## :pill: Custom modules
@@ -109,11 +111,11 @@ async def findRegisteredSitesHolehe(domain_id):
 ```
 
 ## :camera: Screenshots
-<p align="center"><img src="https://github.com/xampla/InfoHound/blob/main/email_tab.png" alt="Emails tab" width="60%"></p>
+<p align="center"><img src="https://github.com/bytemallet/ReconFox/blob/main/reconfox_general_view.png" alt="Emails tab" width="60%"></p>
 
 ## :eight_spoked_asterisk: Export to GraphML
 Do you want to create a visualization graph with the findings? You can export the whole domain analysis to a GraphML file and open it with yED, Gephi or any tool of your choice. It currently exports files, people, emails, social profiles, registered sites and usernames. URLs and subdomains are not included due to the amount of results.
-<p align="center"><img src="https://github.com/xampla/InfoHound/blob/main/graph_example.png" alt="Graph visualization example" width="50%"></p>
+<p align="center"><img src="https://github.com/bytemallet/ReconFox/blob/main/graph_example.png" alt="Graph visualization example" width="50%"></p>
 
 ## :eight_pointed_black_star: Export to Maltego
 Do you want to proceed with tools like Maltego for your extended investigations? You can export the entire domain analysis (including files, individuals, emails, social profiles, registered sites, and usernames) to a Maltego-compatible file (CSV) and open it there. You'll find the Maltego Column Mapping configuration file ([_maltego_mapping.mtz_](maltego_mapping.mtz)) in the project's root directory. [Learn more about importing into Maltego](https://docs.maltego.com/support/solutions/articles/15000010797-import-graph-from-table)
@@ -125,18 +127,3 @@ Do you want to proceed with tools like Maltego for your extended investigations?
 * [reconFTW](https://github.com/six2dez/reconftw)
 * [Poastal](https://github.com/jakecreps/poastal)
 * And many others
-
-# Copyright
-This code has been developed by Fundació Privada Internet i Innovació Digital a Catalunya (i2CAT).
-
-i2CAT is a *non-profit research and innovation centre* that  promotes mission-driven knowledge to solve business challenges, co-create solutions with a transformative impact, empower citizens through open and participative digital social innovation with territorial capillarity, and promote pioneering and strategic initiatives.
-
-i2CAT *aims to transfer* research project results to private companies in order to create social and economic impact via the out-licensing of intellectual property and the creation of spin-offs.
-
-Find more information of i2CAT projects and IP rights at https://i2cat.net/tech-transfer/
-
-
-# License
-This code is licensed under the terms *AGPLv3*. Information about the license can be located at [link](https://www.gnu.org/licenses/agpl-3.0.html).
-
-If you find that this license doesn't fit with your requirements regarding the use, distribution or redistribution of our code for your specific work, please, don’t hesitate to contact the intellectual property managers in i2CAT at the following address: techtransfer@i2cat.net

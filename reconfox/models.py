@@ -57,8 +57,12 @@ class Files(models.Model):
     url_download = models.TextField()
     filename = models.CharField(max_length=255)
     metadata = models.JSONField(null=True)
+    software_used = models.JSONField(default=list)
     source = models.CharField(max_length=255)
     domain = models.ForeignKey(Domain, on_delete=models.CASCADE) 
+    class Meta:
+        unique_together = (('filename', 'domain'),)
+    
 
 class Dorks(models.Model):
     dork = models.TextField()
@@ -102,6 +106,14 @@ class Tasks(models.Model):
     domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
     class Meta:
         unique_together = (('tid', 'domain'),)
+    
+class PeopleFiles(models.Model):
+    people = models.ForeignKey(People, on_delete=models.CASCADE)
+    file = models.ForeignKey(Files, on_delete=models.CASCADE)
+    domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('people', 'file', 'domain'),)
 
 class IPs(models.Model):
     ip = models.CharField(max_length=12, primary_key=True)

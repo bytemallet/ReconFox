@@ -1,5 +1,32 @@
 <div class="container">
   <div class="mt-3">
+    <div class="card mb-4 shadow">
+      <div class="card-body">
+        <h5 class="card-title">Mega Tasks</h5>
+        <p class="text-secondary">A Megatask is a powerful, combined task that organizes multiple smaller tasks to work seamlessly toward a common goal, such as retrieving as many emails as possible.</p>
+        <div class="card mb-3">
+          <div class="card-body">
+            <p class="card-title fw-semibold mb-0">Email Discovery</p>
+            <p class="mb-1">
+              This task sequence automates email discovery by gathering emails from URLs, advanced search queries (dorks), and metadata from downloaded files, then identifies email patterns to streamline contact information extraction and organization.</p>
+            <p class="text-secondary mb-0">
+              <span class="badge text-bg-info me-1">Find Emails</span> &rarr; 
+              <span class="badge text-bg-info me-1">Find Emails From URLs</span> &rarr; 
+              <span class="badge text-bg-info me-1">Execute Dorks</span> &rarr; 
+              <span class="badge text-bg-info me-1">Find Emails From Dorks</span> &rarr; 
+              <span class="badge text-bg-info me-1">Get Files from URLs</span> &rarr; 
+              <span class="badge text-bg-info me-1">Download All Files</span> &rarr; 
+              <span class="badge text-bg-info me-1">Get Metadata</span> &rarr; 
+              <span class="badge text-bg-info me-1">Get Emails From Metadata</span> &rarr; 
+              <span class="badge text-bg-info me-1">Find Email Patterns</span>
+            </p>
+            <div class="col-md-12 d-flex justify-content-end align-items-end">
+              <button id="email-megatask" class="btn btn-dark megatask-executer">Execute</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <h5 style="color: black;">Retrieval tasks</h5>
     <div id="task-retrieval-container" class="row mb-4">
       

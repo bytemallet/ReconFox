@@ -20,15 +20,15 @@ def summarizeProfile(domain_id):
             except Exception as e:
                 print(f"Error inesperado: {str(e)}")
     else: #REMOTE
-        prompt = "Provide a brief description (150 words) and the job title inside " + domain + "for each person based on the following metadata. Return the response as JSON with each person's name, description and job title:\n\n"
+        init_prompt = "Provide a brief description (150 words) and the job title inside " + domain + "for each person based on the following metadata.\n\n"
         documents = []
         for entry in queryset.iterator():
             raw_data = entry.raw_metadata
-            prompt += f"Name: {entry.name}\nMetadata: {entry.raw_metadata}\n\n"
+            prompt = init_prompt + f"Name: {entry.name}\nMetadata: {entry.raw_metadata}\n\n"
             document_text = f"Person Name: {entry.name}\nMetadata: {raw_data}"
             doc = Document(
                         text=document_text,
-                        extra_info={"name": entry.name, "source": entry.source})
+                        extra_info={"name": entry.name})
             documents.append(doc)
             prompt += "Return the output as JSON in this format:\n" \
                     "{\n  \"people\": [\n    {\"name\": \"Name1\", \"description\": \"Description1\", \"job_title\": \"JobTitle1\"},"\
@@ -45,6 +45,6 @@ def summarizeProfile(domain_id):
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON response: {e}")
                 data = []
-            break
+            
 
         
