@@ -18,7 +18,6 @@ COPY requirements.txt /code/
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     exiftool \
-    git \
     && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
 # Install the project dependencies

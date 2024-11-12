@@ -7,8 +7,10 @@ import time
 import os
 import textract
 from random import randint
+from llama_index import Document as LlamaDocument
 from django.db import IntegrityError
-from reconfox.models import Domain,Files, Emails
+from reconfox.tool.ai_assistant import llama_index_helper
+from reconfox.models import Domain, Files, People, Emails, Usernames, PeopleFiles
 from reconfox.tool.retriever_modules import emails as emails_utils
 import reconfox.tool.reconfox_utils as reconfox_utils
 
@@ -20,6 +22,9 @@ from openpyxl import load_workbook
 from PyPDF2 import PdfReader
 from svglib.svglib import svg2rlg
 from svgwrite import Drawing
+
+from django.db import transaction
+from llama_index import VectorStoreIndex
 
 
 download_direcotry = "reconfox/tool/downloaded_files/"
@@ -145,6 +150,94 @@ def getEmailsFromFilesContent(domain_id):
                                 pass
     
 
+def getFileRelationships(domain_id):
+    docs = []
+    # Create a separate document for each file, including metadata extracted from JSON
+    for file in Files.objects.filter(domain_id=domain_id):
+        metadata = "\n".join([f"{key}: {value}" for key, value in file.metadata.items()]) if file.metadata else "None"
+        doc_text = json.dumps({
+            "file": file.filename,
+            "metadata": file.metadata or "None"
+        })
+        doc = LlamaDocument(text=doc_text)
+        docs.append(doc)
+    
+    index = VectorStoreIndex.from_documents(docs, embed_model="text-embedding-3-large")
+    query_engine = index.as_query_engine()
+
+    # Adding People, Emails, Files, and Usernames data
+    for person in People.objects.filter(domain_id=domain_id):
+        associated_emails = Emails.objects.filter(domain_id=domain_id, people=person).values_list('email', flat=True)
+        associated_usernames = Usernames.objects.filter(domain_id=domain_id, people=person).values_list('username', flat=True)
+        # Build the document text for the person
+        user_data = {"person_name":person.name, "emails":list(associated_emails), "usernames":list(associated_usernames)}
+        find_user_file_relationships(user_data, domain_id, query_engine)
+    
+    find_software(domain_id, query_engine)
+
+        
+
+def find_user_file_relationships(user_data, domain_id, query_engine):
+    prompt = (
+        f"Analyze the following user information: {user_data}. Search if the name or other details from this information are present in any file's metadata.\n"
+        "Only consider a match if the metadata includes the exact name or related details from the user data provided.\n"
+        "Respond in this JSON format, listing only file names where a match is found:\n"
+        "{\n"
+        "  \"files\": [\"<file_1>\", \"<file_2>\", \"<file_n>\"]\n"
+        "}\n"
+        "Example response:\n"
+        "{\n"
+        "  \"files\": [\"file123.json\", \"file456.json\"]\n"
+        "}\n"
+    )
+
+    response = llama_index_helper.query(prompt, query_engine)
+    try:
+        data = json.loads(response)["files"]
+        print(data)
+        
+        for file_name in data:
+            user_name = user_data["person_name"]
+            # Logic to retrieve or create the related instances
+            try:
+                user_name = user_data["person_name"]
+                person_instance = People.objects.get(domain_id=domain_id, name=user_name)
+                file_instance = Files.objects.filter(domain_id=domain_id, filename=file_name).first()
+                if file_instance and person_instance:
+                    PeopleFiles.objects.get_or_create(people=person_instance, file=file_instance, domain_id=domain_id)
+
+            except People.DoesNotExist:
+                print(f"Person not found: {user_name}")
+            except Files.DoesNotExist:
+                print(f"File not found: {file_name}")
+        
+
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON response: {e}")
+        data = []
+
+def find_software(domain_id, query_engine):
+    queryset = Files.objects.filter(domain_id=domain_id)
+    software_updates = []
+
+    for file in queryset.iterator():
+        prompt = (f"Give a JSON list of all software used for {file.filename}. \n"
+                  "The response should follow this JSON format: {\"software\":[\"soft 1\",\"soft 2\",\"soft N\"]}")
+        response = llama_index_helper.query(prompt, query_engine)
+
+        try:
+            data = json.loads(response).get("software", [])
+            if isinstance(data, list) and all(isinstance(soft, str) for soft in data):
+                software_updates.append((file.id, data))  # Collect updates
+            else:
+                print(f"Invalid data format for file {file.filename}: {data}")
+
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON response for file {file.filename}: {e}")
+
+    # Perform bulk update if necessary
+    for file_id, software in software_updates:
+        Files.objects.filter(id=file_id).update(software_used=software)
 
 
 

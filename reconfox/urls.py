@@ -19,6 +19,7 @@ urlpatterns = [
     path('emails_stats/<int:domain_id>/', views.get_emails_stats, name='emails_stats'),
     path('get_tasks/', views.get_available_tasks, name='get_available_tasks'),
     path('execute_task/', views.execute_task, name='execute_task'),
+    path('execute_megatask/', views.execute_megatask, name='execute_megatask'),
     path('get_tasks/', views.get_available_tasks, name='get_available_tasks'),
     path('get_task_status/', views.get_task_status, name='get_task_status'),
     path('stop_task_execution/', views.stop_task_execution, name='stop_task_execution'),

@@ -120,13 +120,20 @@ function loadDomainInfo(domain_id) {
         domain_creation.textContent = "creation_date" in data["whois"] ? data["whois"]["creation_date"][0] : undefined
         domain_expiration.textContent = "expiration_date" in data["whois"] ? data["whois"]["expiration_date"][0] : undefined
         if (data["whois"]["name_servers"] !== null) {
-          ns_info = ""
+          ns_info = "";
           data["whois"]["name_servers"].forEach( (ns, index, array) => {
             ns_info += ns + (index < array.length - 1 ? ", " : "");
           });
           domain_NS.textContent = ns_info;
+        } else if (data["dns"] !== null) {
+          ns_info = "";
+          data["dns"]["NS"].forEach( (ns, index, array) => {
+            ns_info += ns + (index < array.length - 1 ? ", " : "");
+          });
+          domain_NS.textContent = ns_info;
         }
-      }
+      } 
+      
       if (data["dns"] !== null) {
         if ("A" in data["dns"]) {
           let dns_a_text = data["dns"]["A"].join(', ');
@@ -186,8 +193,8 @@ function loadPeople() {
           <div class="d-flex align-items-center mb-2">
             <i class="bi bi-envelope-fill me-2"></i>
             <span class="me-3">${person.emails}</span>
-            <i class="bi bi-telephone-fill me-2"></i>
-            <span class="me-3">${person.phones}</span>
+            <i class="bi bi-file-earmark-text-fill me-2"></i>
+            <span class="me-3">${person.files}</span>
             <i class="bi bi-key-fill me-2"></i>
             <span class="me-3">${person.keys}</span>
             <i class="bi bi-person-fill me-2"></i>
@@ -233,57 +240,88 @@ function loadPersonModal(personID) {
 
   $.getJSON(url, function (data) {
     const emails = data.emails;
+    const files = data.files;
+    const software = data.software;
     const usernames = data.usernames;
     const name = document.getElementById("personInfoModalLabel");
     name.innerHTML = data["name"];
+    const job_title = document.getElementById("personJobTitleModal");
+    job_title.innerHTML = data["job_title"];
     const summary = document.getElementById("personSummary");
     summary.innerHTML = data["ocupation_summary"];
 
     // Populate Emails and Services
     emails.forEach((email) => {
-      const emailSection = $("<div>").addClass("col-12");
-      emailSection.html(`<div class="text-center"><strong>${email.email}</strong></div>`);
-      const emailTable = $("<table>").addClass("table table-bordered border-5 text-center rounded-3 overflow-hidden shadow-sm");
-      const emailTableBody = $("<tbody>");
-      email.services.forEach((service) => {
-        const emailTableRow = $("<tr>");
-        emailTableRow.html(`<td>${service}</td>`);
-        emailTableBody.append(emailTableRow);
-      });
-      emailTable.append(emailTableBody);
-      emailSection.append(emailTable);
-      emailContainer.append(emailSection);
+      // Create the list item for each email
+      const emailListItem = $("<li>").addClass("list-group-item");
+
+      // Add the bold email text
+      const emailText = $("<p>").addClass("fw-semibold mb-1").text(email.email);
+      emailListItem.append(emailText);
+
+      // Create a comma-separated list of services
+      const servicesText = email.services.join(", ");
+      const servicesParagraph = $("<p>").addClass("fs-6 text-secondary mb-1").text(`Registered in: ${servicesText}`);
+      emailListItem.append(servicesParagraph);
+
+      // Append the list item to the list
+      $("#personDetailedEmails").append(emailListItem);
     });
 
-    // Populate Usernames and Profiles
-    const usernameTable = $("<table>").addClass("table table-bordered border-5 text-center rounded-3 overflow-hidden shadow-sm");
-    const usernameTableHead = $("<thead>");
-    usernameTableHead.html(`
-      <tr>
-        <th scope="col">Usernames</th>
-        <th scope="col">Leak</th>
-        <th scope="col">Password</th>
-        <th scope="col">Profiles</th>
-      </tr>
-    `);
-    const usernameTableBody = $("<tbody>");
+    // Populate Usernames and Profiles as a list
     usernames.forEach((username) => {
-      const usernameTableRow = $("<tr>");
-      usernameTableRow.html(`
-        <th scope="row">${username.username}</th>
-        <td>${username.leaked === true ? '<i class="bi bi-check2"></i>' : '<i class="bi bi-x-lg"></i>'}</td>
-        <td>${username.password}</td>
-        <td>
-          <div class="row">
-            ${username.profiles.map((profile) => `<div class="col"><a href="${profile.link}">${profile.service}</a></div>`).join("")}
-          </div>
-        </td>
-      `);
-      usernameTableBody.append(usernameTableRow);
+      // Create a list item for each username
+      const usernameListItem = $("<li>").addClass("list-group-item");
+
+      // Username
+      const usernameText = $("<p>").addClass("fw-semibold mb-0").text(username.username);
+      usernameListItem.append(usernameText);
+
+      // Profiles
+      const profilesText = username.profiles.map(profile => profile.service).join(", ");
+      const profilesParagraph = $("<p>").addClass("text-secondary mb-0").text(`Found on: ${profilesText}`);
+      usernameListItem.append(profilesParagraph);
+
+      // Password
+      const passwordText = $("<p>").addClass("mb-0").html(`<span class="fw-semibold">Password:</span> ${username.password}`);
+      usernameListItem.append(passwordText);
+
+      // Leaked status
+      const leakedStatus = username.leaked === true 
+        ? '<span class="fw-semibold">Leaked:</span> <span class="text-danger">YES</span>'
+        : '<span class="fw-semibold">Leaked:</span> <span class="text-success">NO</span>';
+      const leakedParagraph = $("<p>").addClass("mb-0").html(leakedStatus);
+      usernameListItem.append(leakedParagraph);
+
+      // Append to the main list
+      $("#personDetailedUsernames").append(usernameListItem);
     });
-    usernameTable.append(usernameTableHead);
-    usernameTable.append(usernameTableBody);
-    usernameContainer.append(usernameTable);
+
+    files.forEach((file) => {
+      // Create a list item for each file
+      const listItem = $("<li>").addClass("list-group-item");
+    
+      // Add the file name in bold
+      listItem.append(`<p class="fw-semibold mb-1">${file.filename}</p>`);
+    
+      // Add shared users as a secondary, smaller text
+      if (file.shared_with.length > 0) {
+        listItem.append(
+          `<p class="text-secondary mb-1">Shared with: ${file.shared_with.join(", ")}</p>`
+        );
+      }
+    
+      // Append to the container
+      $("#personDetailedFiles").append(listItem);
+    });
+
+    // Create a span for each software with a blue badge background
+    software.forEach((soft) => {
+      const badge = $("<span>")
+        .addClass("badge bg-primary me-2") // Bootstrap classes for blue background and margin
+        .text(soft);
+      $("#personDetailedSoftware").append(badge);
+    });
   });
 }
 
@@ -741,6 +779,27 @@ $(document).on('click', 'button[id$="-cancel"]', function() {
       $('#' + cancel_tid).closest(".card-body").find('.progress').remove();
       cancel_btn.remove();
       
+    }
+  });
+});
+
+$(document).on('click', 'button.megatask-executer', function() {
+  btn = $(this)
+  
+  mtid = btn.attr("id")
+  var domain_id = $('#domain-list .nav-item .nav-link.active').attr('data-domain-id');
+  url = "/execute_megatask?mtid="+mtid+"&domain_id="+domain_id
+
+  $.getJSON(url, function (data) {
+    
+    if(data["error"]) {
+      showToast(false, data["error"])
+    }
+    else {
+      btn.removeClass('btn-dark')
+      btn.addClass('btn-secondary')
+      btn.addClass('disabled')
+      btn.text('PENDING')
     }
   });
 });
