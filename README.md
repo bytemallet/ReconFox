@@ -1,7 +1,11 @@
+<div align="center">
+    <img src="https://github.com/bytemallet/ReconFox/blob/main/reconfox/static/reconfox/imgs/ReconFox_logo.png" alt="Emails tab" width="10%">
+</div>
+
 # ReconFox - OSINT tool for domain profiling
 During the reconnaissance phase, an attacker searches for any information about his target to create a profile that will later help him to identify possible ways to get in an organization. ReconFox performs passive analysis techniques (which do not interact directly with the target) using OSINT to extract a large amount of data given a web domain name. This tool will retrieve emails, people, files, subdomains, usernames and urls that will be later analyzed to extract even more valuable information. 
 
-In addition, ReconFox leverages an Ollama instance, enabling it to harness the power of LLM (Large Language Models). By default, ReconFox utilizes llama2, a pre-trained LLM model, to generate brief descriptions of the roles of individuals within an organization. This functionality provides valuable insights into the organizational structure and facilitates the identification of key personnel. Moreover, ongoing development efforts aim to introduce additional features and enhancements to further enrich the tool's capabilities in the future.
+In addition, ReconFox leverages an Ollama instance, enabling it to harness the power of LLM (Large Language Models). ReconFox can utilize OpenAI and llama2, a pre-trained LLM model, to generate brief descriptions of the roles of individuals within an organization. This functionality provides valuable insights into the organizational structure and facilitates the identification of key personnel. Moreover, ongoing development efforts aim to introduce additional features and enhancements to further enrich the tool's capabilities in the future.
 
 **NOTE:** ReconFox does not require any special hardware to operate. However, it's important to consider the hardware requirements when using tasks that utilize the Large Language Model (LLM). For detailed information about the specific requirements for the LLM model you intend to use, please refer to the official [Ollama documentation](https://ollama.ai/library).
 
@@ -111,7 +115,7 @@ async def findRegisteredSitesHolehe(domain_id):
 ```
 
 ## :camera: Screenshots
-<p align="center"><img src="https://github.com/bytemallet/ReconFox/blob/main/reconfox_general_view.png" alt="Emails tab" width="60%"></p>
+<p align="center"><img src="https://github.com/bytemallet/ReconFox/blob/main/reconfox_general_view.png" alt="Emails tab" width="80%"></p>
 
 ## :eight_spoked_asterisk: Export to GraphML
 Do you want to create a visualization graph with the findings? You can export the whole domain analysis to a GraphML file and open it with yED, Gephi or any tool of your choice. It currently exports files, people, emails, social profiles, registered sites and usernames. URLs and subdomains are not included due to the amount of results.
